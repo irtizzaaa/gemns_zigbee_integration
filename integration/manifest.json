@@ -1,0 +1,13 @@
+{
+  "domain": "wepower_iot",
+  "name": "WePower IoT",
+  "documentation": "https://github.com/irtizzaaa/wepower_iot_integration",
+  "dependencies": ["mqtt"],
+  "codeowners": ["@irtizzaaa"],
+  "requirements": ["paho-mqtt>=1.6.1"],
+  "version": "1.1.0",
+  "config_flow": true,
+  "iot_class": "local_push",
+  "supported_brands": ["WePower"],
+  "integration_type": "device"
+}

@@ -11,11 +11,12 @@ from homeassistant.const import CONF_DEVICE_ID, CONF_NAME
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.dispatcher import async_dispatcher_send
+from homeassistant.components import mqtt
 from homeassistant.components.mqtt import async_publish, async_subscribe
 
 from .const import (
     DOMAIN,
-    DEVICE_TYPE_BLE,
+    CONF_MQTT_BROKER,
     DEVICE_TYPE_ZIGBEE,
     DEVICE_CATEGORY_SENSOR,
     DEVICE_CATEGORY_SWITCH,
@@ -24,8 +25,10 @@ from .const import (
     DEVICE_CATEGORY_TOGGLE,
     DEVICE_STATUS_CONNECTED,
     DEVICE_STATUS_OFFLINE,
-    BLE_DISCOVERY_MODE_V0_MANUAL,
-    BLE_DISCOVERY_MODE_V1_AUTO,
+    MQTT_TOPIC_STATUS,
+    MQTT_TOPIC_DEVICE,
+    MQTT_TOPIC_CONTROL,
+    MQTT_TOPIC_DONGLE,
     SIGNAL_DEVICE_UPDATED,
 )
 
@@ -51,8 +54,11 @@ class WePowerIoTDeviceManager:
         
     async def start(self):
         """Start the device manager."""
-        # Subscribe to MQTT topics
-        await self._subscribe_to_mqtt()
+        # Subscribe to MQTT topics only if MQTT broker is configured
+        if self.config.get(CONF_MQTT_BROKER):
+            await self._subscribe_to_mqtt()
+        else:
+            _LOGGER.info("MQTT broker not configured, skipping MQTT subscription")
         
         # Start device discovery
         asyncio.create_task(self._device_discovery_loop())
@@ -69,27 +75,17 @@ class WePowerIoTDeviceManager:
         """Add some test devices for demonstration."""
         test_devices = [
             {
-                "device_id": "test_ble_leak_sensor",
-                "device_type": "ble",
-                "category": "sensor",
-                "name": "Test BLE Leak Sensor",
-                "ble_discovery_mode": "v0_manual",
-                "status": "connected"
-            },
-            {
                 "device_id": "test_zigbee_light_switch",
                 "device_type": "zigbee",
                 "category": "light",
                 "name": "Test Zigbee Light Switch",
-                "ble_discovery_mode": "v1_auto",
                 "status": "connected"
             },
             {
-                "device_id": "test_ble_temperature",
-                "device_type": "ble",
+                "device_id": "test_zigbee_sensor",
+                "device_type": "zigbee",
                 "category": "sensor",
-                "name": "Test BLE Temperature Sensor",
-                "ble_discovery_mode": "v1_auto",
+                "name": "Test Zigbee Temperature Sensor",
                 "status": "connected"
             }
         ]
@@ -158,30 +154,35 @@ class WePowerIoTDeviceManager:
     async def _subscribe_to_mqtt(self):
         """Subscribe to relevant MQTT topics."""
         try:
+            # Check if MQTT is available
+            if not await mqtt.async_wait_for_mqtt_client(self.hass):
+                _LOGGER.warning("MQTT client not available, skipping MQTT subscription")
+                return
+                
             # Subscribe to MQTT topics for device updates
             await async_subscribe(
                 self.hass,
-                "wepower_iot/status",
+                MQTT_TOPIC_STATUS,
                 self._handle_status_message
             )
             await async_subscribe(
                 self.hass,
-                "wepower_iot/dongle/+/+",
+                f"{MQTT_TOPIC_DONGLE}/+/+",
                 self._handle_dongle_message
             )
             await async_subscribe(
                 self.hass,
-                "wepower_iot/device/+/+",
+                f"{MQTT_TOPIC_DEVICE}/+/+",
                 self._handle_device_message
             )
             await async_subscribe(
                 self.hass,
-                "wepower_iot/control/+/+",
+                f"{MQTT_TOPIC_CONTROL}/+/+",
                 self._handle_control_message
             )
             _LOGGER.info("Device manager subscribed to MQTT topics")
         except Exception as e:
-            _LOGGER.error(f"Error subscribing to MQTT: {e}")
+            _LOGGER.warning(f"Could not subscribe to MQTT topics: {e}")
             
     def _handle_status_message(self, msg):
         """Handle status messages from add-on."""
@@ -261,13 +262,7 @@ class WePowerIoTDeviceManager:
             
             # Handle different control actions
             action = data.get("action")
-            if action == "toggle_ble":
-                enabled = data.get("enabled", False)
-                _LOGGER.info(f"BLE toggle command received: {enabled}")
-                # Update BLE status in config
-                self.config["enable_ble"] = enabled
-                
-            elif action == "toggle_zigbee":
+            if action == "toggle_zigbee":
                 enabled = data.get("enabled", False)
                 _LOGGER.info(f"Zigbee toggle command received: {enabled}")
                 # Update Zigbee status in config

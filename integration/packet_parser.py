@@ -17,6 +17,7 @@ class GemnsPacketFlags:
     """Flags field parser for Gemns™ IoT packets."""
     
     def __init__(self, flags_byte: int):
+        """Initialize packet flags parser."""
         self.encrypt_status = flags_byte & 0x01
         self.self_external_power = (flags_byte >> 1) & 0x01
         self.event_counter_lsb = (flags_byte >> 2) & 0x03
@@ -26,6 +27,7 @@ class GemnsEncryptedData:
     """Encrypted data structure for Gemns™ IoT packets."""
     
     def __init__(self, data: bytes):
+        """Initialize encrypted data parser."""
         if len(data) != ENCRYPTED_DATA_SIZE:
             raise ValueError(f"Encrypted data must be {ENCRYPTED_DATA_SIZE} bytes")
         

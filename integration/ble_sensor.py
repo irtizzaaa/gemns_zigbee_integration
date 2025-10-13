@@ -26,6 +26,8 @@ from homeassistant.const import (
 
 from .const import DOMAIN, CONF_ADDRESS, CONF_NAME
 from .ble_coordinator import GemnsBluetoothProcessorCoordinator
+from .ble_binary_sensor import GemnsBLEBinarySensor
+from .ble_switch import GemnsBLESwitch
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -75,28 +77,24 @@ async def async_setup_entry(
     # Create entities based on device type (matching device_type_t enum)
     if device_type in ["leak_sensor"] or device_type == 4:
         # DEVICE_TYPE_LEAK_SENSOR = 4 - create binary sensor only
-        from .ble_binary_sensor import GemnsBLEBinarySensor
         binary_sensor_entity = GemnsBLEBinarySensor(coordinator, config_entry)
         entities.append(binary_sensor_entity)
         _LOGGER.info("Created binary sensor entity for leak sensor")
         
     elif device_type in ["vibration_sensor"] or device_type == 2:
         # DEVICE_TYPE_VIBRATION_MONITOR = 2 - create binary sensor only
-        from .ble_binary_sensor import GemnsBLEBinarySensor
         binary_sensor_entity = GemnsBLEBinarySensor(coordinator, config_entry)
         entities.append(binary_sensor_entity)
         _LOGGER.info("Created binary sensor entity for vibration monitor")
         
     elif device_type in ["two_way_switch"] or device_type == 3:
         # DEVICE_TYPE_TWO_WAY_SWITCH = 3 - create binary sensor only
-        from .ble_binary_sensor import GemnsBLEBinarySensor
         binary_sensor_entity = GemnsBLEBinarySensor(coordinator, config_entry)
         entities.append(binary_sensor_entity)
         _LOGGER.info("Created binary sensor entity for two-way switch")
         
     elif device_type in ["button", "legacy"] or device_type in [0, 1]:
         # DEVICE_TYPE_LEGACY = 0, DEVICE_TYPE_BUTTON = 1 - create binary sensor only
-        from .ble_binary_sensor import GemnsBLEBinarySensor
         binary_sensor_entity = GemnsBLEBinarySensor(coordinator, config_entry)
         entities.append(binary_sensor_entity)
         _LOGGER.info("Created binary sensor entity for button/legacy device")
@@ -104,7 +102,6 @@ async def async_setup_entry(
     else:
         # Unknown device type - create binary sensor (fallback)
         _LOGGER.warning("Unknown device type %s, creating binary sensor", device_type)
-        from .ble_binary_sensor import GemnsBLEBinarySensor
         binary_sensor_entity = GemnsBLEBinarySensor(coordinator, config_entry)
         entities.append(binary_sensor_entity)
     
@@ -255,9 +252,6 @@ class GemnsBLESensor(SensorEntity):
         self._attr_native_unit_of_measurement = None
         self._attr_icon = None
         
-        # Get short address for display
-        short_address = self.address.replace(":", "")[-6:].upper()
-        
         # Set properties based on device type
         # Skip leak sensors - they should be handled by binary sensor
         if "leak" in device_type:
@@ -308,7 +302,6 @@ class GemnsBLESensor(SensorEntity):
             "button": "Button",
             "vibration_sensor": "Vibration Monitor",
             "two_way_switch": "Two Way Switch",
-            "vibration_sensor": "Vibration Sensor",
             "on_off_switch": "On/Off Switch",
             "light_switch": "Light Switch",
             "door_switch": "Door Switch",

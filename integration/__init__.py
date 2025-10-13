@@ -67,7 +67,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         }
 
         # Register services
-        await _register_services(hass, device_manager)
+        await _register_services(hass, device_manager, entry)
 
         # Forward the setup to the relevant platforms
         await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
@@ -98,7 +98,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return unload_ok
 
 
-async def _register_services(hass: HomeAssistant, device_manager: GemnsDeviceManager):
+async def _register_services(hass: HomeAssistant, device_manager: GemnsDeviceManager, entry: ConfigEntry):
     """Register Gemns™ IoT services."""
     
     async def add_device(service_call):

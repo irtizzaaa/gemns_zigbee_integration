@@ -3,6 +3,7 @@
 import asyncio
 import json
 import logging
+import random
 from typing import Any, Dict, List, Optional
 from datetime import datetime, timezone
 
@@ -59,7 +60,8 @@ class GemnsDeviceManager:
             _LOGGER.info("MQTT broker not configured, skipping MQTT subscription")
         
         # Start device discovery
-        asyncio.create_task(self._device_discovery_loop())
+        discovery_task = asyncio.create_task(self._device_discovery_loop())
+        self._discovery_task = discovery_task
         
     async def stop(self):
         """Stop the device manager."""
@@ -94,7 +96,7 @@ class GemnsDeviceManager:
             _LOGGER.info("Device added: %s", device_id)
             return True
             
-        except Exception as e:
+        except (ValueError, KeyError, AttributeError, TypeError) as e:
             _LOGGER.error("Error adding device: %s", e)
             return False
             
@@ -151,7 +153,7 @@ class GemnsDeviceManager:
         try:
             data = json.loads(msg.payload)
             _LOGGER.info("Status message received: %s", data)
-        except Exception as e:
+        except (ValueError, KeyError, AttributeError, TypeError) as e:
             _LOGGER.error("Error handling status message: %s", e)
             
     def _handle_device_message(self, msg):
@@ -167,7 +169,6 @@ class GemnsDeviceManager:
                 if "name" not in data:
                     data["name"] = device_id
                 if "last_seen" not in data:
-                    from datetime import datetime, timezone
                     data["last_seen"] = datetime.now(timezone.utc).isoformat()
                 if "properties" not in data:
                     data["properties"] = {}
@@ -182,7 +183,7 @@ class GemnsDeviceManager:
                     )
                 )
                 
-        except Exception as e:
+        except (ValueError, KeyError, AttributeError, TypeError) as e:
             _LOGGER.error("Error handling device message: %s", e)
             
     def _handle_control_message(self, msg):
@@ -199,7 +200,7 @@ class GemnsDeviceManager:
                 # Update Zigbee status in config
                 self.config["enable_zigbee"] = enabled
                 
-        except Exception as e:
+        except (ValueError, KeyError, AttributeError, TypeError) as e:
             _LOGGER.error("Error handling control message: %s", e)
         
     async def publish_mqtt(self, topic: str, payload: str):
@@ -207,7 +208,7 @@ class GemnsDeviceManager:
         try:
             await async_publish(self.hass, topic, payload)
             _LOGGER.debug("Published MQTT message: %s -> %s", topic, payload)
-        except Exception as e:
+        except (ValueError, KeyError, AttributeError, TypeError) as e:
             _LOGGER.error("Failed to publish MQTT message: %s", e)
             
     async def _async_notify_device_update(self, device_data):
@@ -233,24 +234,23 @@ class GemnsDeviceManager:
     async def _device_discovery_loop(self):
         """Main device discovery loop."""
         while True:
-            try:
-                # Update device statuses
-                await self._update_device_statuses()
-                
-                # Wait before next scan
-                await asyncio.sleep(30)
-                
-            except Exception as e:
-                _LOGGER.error("Error in device discovery loop: %s", e)
-                await asyncio.sleep(60)
+        try:
+            # Update device statuses
+            await self._update_device_statuses()
+            
+            # Wait before next scan
+            await asyncio.sleep(30)
+            
+        except (ValueError, KeyError, AttributeError, TypeError) as e:
+            _LOGGER.error("Error in device discovery loop: %s", e)
+            await asyncio.sleep(60)
                 
     async def _update_device_statuses(self):
         """Update status of all devices."""
-        for device_id, device in self.devices.items():
+        for device in self.devices.values():
             # Simulate some devices going offline
             if device.get("status") == "connected":
                 # Randomly set some devices to offline for testing
-                import random
                 if random.random() < 0.1:  # 10% chance
                     device["status"] = "offline"
                     device["last_seen"] = datetime.now(timezone.utc).isoformat()

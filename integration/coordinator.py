@@ -33,13 +33,13 @@ class GemnsDataCoordinator(DataUpdateCoordinator):
         try:
             # Get current device data
             devices = self.device_manager.get_all_devices()
-            
+        except (ValueError, KeyError, AttributeError, TypeError) as err:
+            raise UpdateFailed(f"Error communicating with device manager: {err}") from err
+        else:
             return {
                 "devices": devices,
                 "last_update": self.device_manager.devices,
             }
-        except (ValueError, KeyError, AttributeError, TypeError) as err:
-            raise UpdateFailed(f"Error communicating with device manager: {err}") from err
 
     async def async_setup(self) -> None:
         """Set up the coordinator."""

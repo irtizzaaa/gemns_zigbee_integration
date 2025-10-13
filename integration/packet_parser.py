@@ -292,9 +292,6 @@ def parse_gems_packet(manufacturer_data: bytes, decryption_key: Optional[bytes] 
             if decrypted_data:
                 result['decrypted_data'] = decrypted_data
                 result['sensor_data'] = packet.parse_sensor_data(decrypted_data)
-        else:
-            # No decryption key provided
-            pass
         
         return result
         

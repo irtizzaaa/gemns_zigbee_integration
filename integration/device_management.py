@@ -91,11 +91,11 @@ class GemnsDeviceManager:
                 self._async_notify_device_added(device)
             )
             
-            _LOGGER.info(f"Device added: {device_id}")
+            _LOGGER.info("Device added: %s", device_id)
             return True
             
         except Exception as e:
-            _LOGGER.error(f"Error adding device: {e}")
+            _LOGGER.error("Error adding device: %s", e)
             return False
             
     def get_device(self, device_id: str) -> Optional[Dict[str, Any]]:
@@ -144,21 +144,21 @@ class GemnsDeviceManager:
             )
             _LOGGER.info("Device manager subscribed to MQTT topics")
         except Exception as e:
-            _LOGGER.warning(f"Could not subscribe to MQTT topics: {e}")
+            _LOGGER.warning("Could not subscribe to MQTT topics: %s", e)
             
     def _handle_status_message(self, msg):
         """Handle status messages from add-on."""
         try:
             data = json.loads(msg.payload)
-            _LOGGER.info(f"Status message received: {data}")
+            _LOGGER.info("Status message received: %s", data)
         except Exception as e:
-            _LOGGER.error(f"Error handling status message: {e}")
+            _LOGGER.error("Error handling status message: %s", e)
             
     def _handle_device_message(self, msg):
         """Handle device messages."""
         try:
             data = json.loads(msg.payload)
-            _LOGGER.info(f"Device message received: {data}")
+            _LOGGER.info("Device message received: %s", data)
             
             # Update device status
             device_id = data.get("device_id")
@@ -173,7 +173,7 @@ class GemnsDeviceManager:
                     data["properties"] = {}
                     
                 self.devices[device_id] = data
-                _LOGGER.info(f"Updated device {device_id} with status: {data.get('status')}")
+                _LOGGER.info("Updated device %s with status: %s", device_id, data.get('status'))
                 
                 # Schedule the dispatcher call in the main event loop
                 self.hass.loop.call_soon_threadsafe(
@@ -183,32 +183,32 @@ class GemnsDeviceManager:
                 )
                 
         except Exception as e:
-            _LOGGER.error(f"Error handling device message: {e}")
+            _LOGGER.error("Error handling device message: %s", e)
             
     def _handle_control_message(self, msg):
         """Handle control messages from add-on."""
         try:
             data = json.loads(msg.payload)
-            _LOGGER.info(f"Control message received: {data}")
+            _LOGGER.info("Control message received: %s", data)
             
             # Handle different control actions
             action = data.get("action")
             if action == "toggle_zigbee":
                 enabled = data.get("enabled", False)
-                _LOGGER.info(f"Zigbee toggle command received: {enabled}")
+                _LOGGER.info("Zigbee toggle command received: %s", enabled)
                 # Update Zigbee status in config
                 self.config["enable_zigbee"] = enabled
                 
         except Exception as e:
-            _LOGGER.error(f"Error handling control message: {e}")
+            _LOGGER.error("Error handling control message: %s", e)
         
     async def publish_mqtt(self, topic: str, payload: str):
         """Publish MQTT message."""
         try:
             await async_publish(self.hass, topic, payload)
-            _LOGGER.debug(f"Published MQTT message: {topic} -> {payload}")
+            _LOGGER.debug("Published MQTT message: %s -> %s", topic, payload)
         except Exception as e:
-            _LOGGER.error(f"Failed to publish MQTT message: {e}")
+            _LOGGER.error("Failed to publish MQTT message: %s", e)
             
     async def _async_notify_device_update(self, device_data):
         """Async helper to notify device updates."""
@@ -241,7 +241,7 @@ class GemnsDeviceManager:
                 await asyncio.sleep(30)
                 
             except Exception as e:
-                _LOGGER.error(f"Error in device discovery loop: {e}")
+                _LOGGER.error("Error in device discovery loop: %s", e)
                 await asyncio.sleep(60)
                 
     async def _update_device_statuses(self):

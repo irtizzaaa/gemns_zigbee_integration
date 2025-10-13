@@ -1,4 +1,3 @@
-
 """BLE sensor platform for Gemns™ IoT integration."""
 
 import logging
@@ -24,7 +23,7 @@ from homeassistant.const import (
     CONCENTRATION_PARTS_PER_MILLION,
 )
 
-from .const import DOMAIN, CONF_ADDRESS, CONF_NAME
+from .const import DOMAIN, CONF_ADDRESS
 from .ble_coordinator import GemnsBluetoothProcessorCoordinator
 from .ble_binary_sensor import GemnsBLEBinarySensor
 from .ble_switch import GemnsBLESwitch
@@ -46,7 +45,7 @@ async def async_setup_entry(
         address = config_entry.unique_id
     
     # If still no address, skip BLE sensor setup
-    if not address or address.startswith("gemns_temp_") or address.startswith("gemns_discovery_"):
+    if not address or address.startswith(("gemns_temp_", "gemns_discovery_")):
         _LOGGER.info("No real BLE device address found, skipping BLE sensor setup for entry %s", config_entry.entry_id)
         return
     

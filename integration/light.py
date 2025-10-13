@@ -81,7 +81,7 @@ async def async_setup_entry(
                 new_entity = GemnsLight(device_manager, device_data)
                 _entities.append(new_entity)
                 _add_entities_callback([new_entity])
-                _LOGGER.info(f"Created new light entity for device: {device_id}")
+                _LOGGER.info("Created new light entity for device: %s", device_id)
     
     # Connect to dispatcher
     async_dispatcher_connect(hass, SIGNAL_DEVICE_ADDED, handle_new_device)
@@ -209,7 +209,7 @@ class GemnsLight(LightEntity):
             )
             
             # Log the command for debugging
-            _LOGGER.info(f"Light command sent: {turn_on_message}")
+            _LOGGER.info("Light command sent: %s", turn_on_message)
             
             # Update device state in device manager
             if self.device_id in self.device_manager.devices:
@@ -228,7 +228,7 @@ class GemnsLight(LightEntity):
             self.async_write_ha_state()
             
         except Exception as e:
-            _LOGGER.error(f"Error turning on light {self.device_id}: {e}")
+            _LOGGER.error("Error turning on light %s: %s", self.device_id, e)
             
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the light off."""
@@ -261,7 +261,7 @@ class GemnsLight(LightEntity):
             self.async_write_ha_state()
             
         except Exception as e:
-            _LOGGER.error(f"Error turning off light {self.device_id}: {e}")
+            _LOGGER.error("Error turning off light %s: %s", self.device_id, e)
             
     @property
     def extra_state_attributes(self) -> Dict[str, Any]:

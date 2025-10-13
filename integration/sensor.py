@@ -36,8 +36,8 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 # Global variable to track entities and add callback
-_entities = []
-_add_entities_callback = None
+_entities: list = []
+_add_entities_callback: Optional[AddEntitiesCallback] = None
 
 
 async def async_setup_entry(
@@ -46,7 +46,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Gemns™ IoT sensors from a config entry."""
-    global _entities, _add_entities_callback
+    global _add_entities_callback
     
     # Check if this is a BLE device entry
     if config_entry.data.get("address"):
@@ -93,6 +93,8 @@ async def async_setup_entry(
     
     # Connect to dispatcher
     async_dispatcher_connect(hass, SIGNAL_DEVICE_ADDED, handle_new_device)
+    
+    return None
 
 
 class GemnsSensor(SensorEntity):

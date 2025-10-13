@@ -35,8 +35,8 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 # Global variable to track entities and add callback
-_entities = []
-_add_entities_callback = None
+_entities: list = []
+_add_entities_callback: Optional[AddEntitiesCallback] = None
 
 
 async def async_setup_entry(
@@ -45,7 +45,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Gemns™ IoT lights from a config entry."""
-    global _entities, _add_entities_callback
+    global _add_entities_callback
     
     # Store the callback for dynamic entity creation
     _add_entities_callback = async_add_entities
@@ -227,7 +227,7 @@ class GemnsLight(LightEntity):
             self._just_controlled = True
             self.async_write_ha_state()
             
-        except Exception as e:
+        except (ValueError, KeyError, AttributeError, TypeError) as e:
             _LOGGER.error("Error turning on light %s: %s", self.device_id, e)
             
     async def async_turn_off(self, **kwargs: Any) -> None:
@@ -260,7 +260,7 @@ class GemnsLight(LightEntity):
             self._just_controlled = True
             self.async_write_ha_state()
             
-        except Exception as e:
+        except (ValueError, KeyError, AttributeError, TypeError) as e:
             _LOGGER.error("Error turning off light %s: %s", self.device_id, e)
             
     @property

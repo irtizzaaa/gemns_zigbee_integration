@@ -38,7 +38,7 @@ class GemnsDataCoordinator(DataUpdateCoordinator):
                 "devices": devices,
                 "last_update": self.device_manager.devices,
             }
-        except Exception as err:
+        except (ValueError, KeyError, AttributeError, TypeError) as err:
             raise UpdateFailed(f"Error communicating with device manager: {err}") from err
 
     async def async_setup(self) -> None:
@@ -53,9 +53,9 @@ class GemnsDataCoordinator(DataUpdateCoordinator):
         if hasattr(self, '_unsub_dispatcher') and self._unsub_dispatcher:
             try:
                 self._unsub_dispatcher()
-            except Exception as e:
+            except (ValueError, KeyError, AttributeError, TypeError) as e:
                 _LOGGER.warning("Error removing dispatcher: %s", e)
-            finally:
+            else:
                 self._unsub_dispatcher = None
 
     def _handle_device_update(self, device_data: Dict[str, Any]) -> None:

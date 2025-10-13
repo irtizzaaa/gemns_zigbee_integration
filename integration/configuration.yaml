@@ -41,5 +41,5 @@ gemns:
 
 # Alternative: Use MQTT Discovery
 mqtt:
-  # The integration will automatically discover devices via MQTT
-  # No additional configuration needed if using MQTT discovery
+    # The integration will automatically discover devices via MQTT
+    # No additional configuration needed if using MQTT discovery

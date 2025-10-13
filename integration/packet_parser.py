@@ -164,7 +164,7 @@ class GemnsPacket:
                 'power_status': self.flags.self_external_power,
             }
         except Exception as e:
-            _LOGGER.error(f"Decryption failed: {e}")
+            _LOGGER.error("Decryption failed: %s", e)
             return None
     
     def parse_sensor_data(self, decrypted_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -294,5 +294,5 @@ def parse_gems_packet(manufacturer_data: bytes, decryption_key: Optional[bytes] 
         return result
         
     except Exception as e:
-        _LOGGER.error(f"Failed to parse Gemns™ IoT packet: {e}")
+        _LOGGER.error("Failed to parse Gemns™ IoT packet: %s", e)
         return None

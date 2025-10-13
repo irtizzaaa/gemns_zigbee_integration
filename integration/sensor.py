@@ -89,7 +89,7 @@ async def async_setup_entry(
                 new_entity = GemnsSensor(device_manager, device_data)
                 _entities.append(new_entity)
                 _add_entities_callback([new_entity])
-                _LOGGER.info(f"Created new sensor entity for device: {device_id}")
+                _LOGGER.info("Created new sensor entity for device: %s", device_id)
     
     # Connect to dispatcher
     async_dispatcher_connect(hass, SIGNAL_DEVICE_ADDED, handle_new_device)
@@ -122,7 +122,6 @@ class GemnsSensor(SensorEntity):
     def _set_sensor_properties(self):
         """Set sensor properties based on device type and category."""
         device_type = self.device.get("device_type", "")
-        device_category = self.device.get("category", "")
         
         # Default properties
         self._attr_device_class = None  # No specific device class

@@ -193,9 +193,6 @@ class GemnsBLESwitch(SwitchEntity):
         """Set switch properties based on device type."""
         device_type = self._device_type.lower()
         
-        # Get short address for display
-        short_address = self.address.replace(":", "")[-6:].upper()
-        
         # Set properties based on device type
         if "light" in device_type:
             self._attr_name = f"Gemns™ IoT Light Switch {self._get_professional_device_id()}"
@@ -227,7 +224,6 @@ class GemnsBLESwitch(SwitchEntity):
             "button": "Button",
             "vibration_sensor": "Vibration Monitor",
             "two_way_switch": "Two Way Switch",
-            "vibration_sensor": "Vibration Sensor",
             "on_off_switch": "On/Off Switch",
             "light_switch": "Light Switch",
             "door_switch": "Door Switch",

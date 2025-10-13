@@ -15,7 +15,8 @@ from homeassistant.const import CONF_ADDRESS, CONF_NAME
 from homeassistant.core import HomeAssistant
 import voluptuous as vol
 
-from .const import DOMAIN, BLE_COMPANY_ID, CONF_DECRYPTION_KEY, CONF_DEVICE_NAME, CONF_DEVICE_TYPE
+from .const import DOMAIN, BLE_COMPANY_ID
+from .packet_parser import GemnsPacket, CONF_DECRYPTION_KEY, CONF_DEVICE_NAME, CONF_DEVICE_TYPE
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -271,7 +272,6 @@ class GemnsBluetoothConfigFlow(ConfigFlow, domain=DOMAIN):
                     if manufacturer_id == BLE_COMPANY_ID and len(data) >= 20:
                         # Try to parse the packet to get device type
                         try:
-                            from .packet_parser import GemnsPacket
                             packet = GemnsPacket(data)
                             if packet.is_valid():
                                 device_type = packet.device_type
@@ -293,8 +293,8 @@ class GemnsBluetoothConfigFlow(ConfigFlow, domain=DOMAIN):
                                 professional_name = f"Gemns™ IoT {device_name} Unit-{device_number:03d}"
                                 
                                 return device_type, professional_name
-                        except Exception as e:
-                            print(f"Error parsing beacon data: {e}")
+                        except (ValueError, KeyError, AttributeError) as e:
+                            _LOGGER.debug("Error parsing beacon data: %s", e)
                             pass
             
             # Fallback: use device name or generate generic name
@@ -309,15 +309,14 @@ class GemnsBluetoothConfigFlow(ConfigFlow, domain=DOMAIN):
                     return "two_way_switch", "Gemns™ IoT Two-Way Switch"
                 elif "Button" in device_name or "button" in device_name:
                     return "button", "Gemns™ IoT Button"
+                else:
+                    # Default fallback
+                    return "unknown", "Gemns™ IoT Device"
             
-            # Default fallback
-            return "unknown", "Gemns™ IoT Device"
-            
-        except Exception as e:
-            print(f"Error extracting device info: {e}")
+        except (ValueError, KeyError, AttributeError) as e:
+            _LOGGER.debug("Error extracting device info: %s", e)
             return "unknown", "Gemns™ IoT Device"
 
     async def async_step_import(self, import_data: dict[str, Any]) -> FlowResult:
         """Handle import from configuration.yaml."""
         return await self.async_step_user(import_data)
-

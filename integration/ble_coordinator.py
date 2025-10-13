@@ -360,7 +360,7 @@ class GemnsBluetoothProcessorCoordinator(
                 # Schedule another discovery attempt in 5 seconds
                 self.hass.async_create_task(self._schedule_next_discovery())
                 
-        except Exception as e:
+        except (ValueError, KeyError, AttributeError, TypeError) as e:
             _LOGGER.error("Discovery error: %s", e)
             # Schedule another discovery attempt in 5 seconds
             self.hass.async_create_task(self._schedule_next_discovery())
@@ -411,7 +411,7 @@ class GemnsBluetoothProcessorCoordinator(
             else:
                 _LOGGER.warning("No advertisement found for device at %s", self.address)
                 
-        except Exception as e:
+        except (ValueError, KeyError, AttributeError, TypeError) as e:
             _LOGGER.error("Error updating coordinator address: %s", e)
     
     def _simulate_test_packet(self) -> None:
@@ -458,7 +458,7 @@ class GemnsBluetoothProcessorCoordinator(
             # Notify listeners
             self.async_update_listeners()
             
-        except Exception as e:
+        except (ValueError, KeyError, AttributeError, TypeError) as e:
             _LOGGER.error("Error simulating test packet: %s", e)
 
     async def async_shutdown(self) -> None:

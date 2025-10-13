@@ -1,6 +1,7 @@
 """BLE binary sensor platform for Gemns™ IoT integration."""
 
 import logging
+import hashlib
 from typing import Any, Dict, Optional
 from datetime import datetime, timezone
 
@@ -282,7 +283,6 @@ class GemnsBLEBinarySensor(BinarySensorEntity):
             # For test devices, use entry ID to generate a consistent ID
             entry_id = self.config_entry.entry_id
             # Extract numbers from entry ID or use a hash
-            import hashlib
             hash_obj = hashlib.md5(entry_id.encode())
             hash_hex = hash_obj.hexdigest()
             device_number = int(hash_hex[:3], 16) % 1000

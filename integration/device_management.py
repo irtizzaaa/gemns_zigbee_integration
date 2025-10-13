@@ -234,16 +234,16 @@ class GemnsDeviceManager:
     async def _device_discovery_loop(self):
         """Main device discovery loop."""
         while True:
-        try:
-            # Update device statuses
-            await self._update_device_statuses()
-            
-            # Wait before next scan
-            await asyncio.sleep(30)
-            
-        except (ValueError, KeyError, AttributeError, TypeError) as e:
-            _LOGGER.error("Error in device discovery loop: %s", e)
-            await asyncio.sleep(60)
+            try:
+                # Update device statuses
+                await self._update_device_statuses()
+
+                # Wait before next scan
+                await asyncio.sleep(30)
+
+            except (ValueError, KeyError, AttributeError, TypeError) as e:
+                _LOGGER.error("Error in device discovery loop: %s", e)
+                await asyncio.sleep(60)
                 
     async def _update_device_statuses(self):
         """Update status of all devices."""
@@ -281,3 +281,4 @@ class GemnsDeviceManager:
             if "general" in self._subscribers:
                 self._subscribers["general"].remove(callback)
         return unsubscribe
+        

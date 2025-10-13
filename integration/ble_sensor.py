@@ -1,3 +1,4 @@
+
 """BLE sensor platform for Gemns™ IoT integration."""
 
 import logging
@@ -208,7 +209,7 @@ class GemnsBLESensor(SensorEntity):
         try:
             self._update_from_coordinator()
             self.async_write_ha_state()
-        except Exception as e:
+        except (ValueError, KeyError, AttributeError, TypeError) as e:
             _LOGGER.error("Error handling coordinator update for %s: %s", self.address, e)
 
     def _update_from_coordinator(self) -> None:

@@ -32,6 +32,7 @@ from .const import (
     SIGNAL_DEVICE_UPDATED,
     SIGNAL_DEVICE_ADDED,
 )
+from .ble_sensor import async_setup_entry as ble_async_setup_entry
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -46,12 +47,9 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Gemns™ IoT sensors from a config entry."""
-    global _add_entities_callback
-    
     # Check if this is a BLE device entry
     if config_entry.data.get("address"):
         # This is a BLE device - use the BLE sensor setup
-        from .ble_sensor import async_setup_entry as ble_async_setup_entry
         return await ble_async_setup_entry(hass, config_entry, async_add_entities)
     
     # This is a traditional MQTT-based entry

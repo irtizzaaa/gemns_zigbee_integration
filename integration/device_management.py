@@ -72,7 +72,10 @@ class GemnsDeviceManager:
         """Add a new device manually."""
         try:
             device_id = device_data["device_id"]
-            
+        except (ValueError, KeyError, AttributeError, TypeError) as e:
+            _LOGGER.error("Error adding device: %s", e)
+            return False
+        else:
             # Create device entry
             device = {
                 "device_id": device_id,
@@ -95,10 +98,6 @@ class GemnsDeviceManager:
             
             _LOGGER.info("Device added: %s", device_id)
             return True
-            
-        except (ValueError, KeyError, AttributeError, TypeError) as e:
-            _LOGGER.error("Error adding device: %s", e)
-            return False
             
     def get_device(self, device_id: str) -> Optional[Dict[str, Any]]:
         """Get a device by ID."""
@@ -145,7 +144,7 @@ class GemnsDeviceManager:
                 self._handle_control_message
             )
             _LOGGER.info("Device manager subscribed to MQTT topics")
-        except Exception as e:
+        except (ValueError, KeyError, AttributeError, TypeError, ConnectionError) as e:
             _LOGGER.warning("Could not subscribe to MQTT topics: %s", e)
             
     def _handle_status_message(self, msg):
@@ -281,4 +280,3 @@ class GemnsDeviceManager:
             if "general" in self._subscribers:
                 self._subscribers["general"].remove(callback)
         return unsubscribe
-        

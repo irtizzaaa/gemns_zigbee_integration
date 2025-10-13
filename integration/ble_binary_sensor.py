@@ -154,7 +154,7 @@ class GemnsBLEBinarySensor(BinarySensorEntity):
                            self.address, previous_state, self._attr_is_on)
             
             self.async_write_ha_state()
-        except Exception as e:
+        except (ValueError, KeyError, AttributeError) as e:
             _LOGGER.error("Error handling coordinator update for %s: %s", self.address, e)
 
     def _update_from_coordinator(self) -> None:

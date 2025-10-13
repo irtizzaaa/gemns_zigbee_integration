@@ -1,12 +1,10 @@
 """The Gemns™ IoT integration."""
 
-import json
 import logging
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import service
 
 from .const import DOMAIN
 from .device_management import GemnsDeviceManager
@@ -119,14 +117,12 @@ async def _register_services(hass: HomeAssistant, device_manager: GemnsDeviceMan
         """Create entities for all devices in device manager."""
         # Get all devices and create entities for them
         all_devices = device_manager.get_all_devices()
-        _LOGGER.info(f"Found {len(all_devices)} devices to create entities for")
+        _LOGGER.info("Found %d devices to create entities for", len(all_devices))
         
         # Trigger platform reload to create entities for new devices
-        await hass.config_entries.async_reload(config_entry.entry_id)
+        await hass.config_entries.async_reload(entry.entry_id)
     
     # Register services (removed MQTT dongle services)
     hass.services.async_register(DOMAIN, "add_device", add_device)
     hass.services.async_register(DOMAIN, "remove_device", remove_device)
     hass.services.async_register(DOMAIN, "create_entities", create_entities_for_devices)
-
-

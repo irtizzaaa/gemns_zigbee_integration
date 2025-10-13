@@ -39,7 +39,7 @@ class GemnsDataCoordinator(DataUpdateCoordinator):
                 "last_update": self.device_manager.devices,
             }
         except Exception as err:
-            raise UpdateFailed(f"Error communicating with device manager: {err}")
+            raise UpdateFailed(f"Error communicating with device manager: {err}") from err
 
     async def async_setup(self) -> None:
         """Set up the coordinator."""
@@ -54,7 +54,7 @@ class GemnsDataCoordinator(DataUpdateCoordinator):
             try:
                 self._unsub_dispatcher()
             except Exception as e:
-                _LOGGER.warning(f"Error removing dispatcher: {e}")
+                _LOGGER.warning("Error removing dispatcher: %s", e)
             finally:
                 self._unsub_dispatcher = None
 

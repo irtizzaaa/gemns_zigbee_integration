@@ -293,8 +293,8 @@ def parse_gems_packet(manufacturer_data: bytes, decryption_key: Optional[bytes] 
                 result['decrypted_data'] = decrypted_data
                 result['sensor_data'] = packet.parse_sensor_data(decrypted_data)
         
-        return result
-        
     except (ValueError, KeyError, AttributeError, TypeError) as e:
         _LOGGER.error("Failed to parse Gemns™ IoT packet: %s", e)
         return None
+    else:
+        return result

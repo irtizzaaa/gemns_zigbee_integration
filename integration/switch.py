@@ -83,7 +83,7 @@ async def async_setup_entry(
                 new_entity = GemnsSwitch(device_manager, device_data)
                 _entities.append(new_entity)
                 _add_entities_callback([new_entity])
-                _LOGGER.info(f"Created new switch entity for device: {device_id}")
+                _LOGGER.info("Created new switch entity for device: %s", device_id)
     
     # Connect to dispatcher
     async_dispatcher_connect(hass, SIGNAL_DEVICE_ADDED, handle_new_device)
@@ -189,7 +189,7 @@ class GemnsSwitch(SwitchEntity):
             self.async_write_ha_state()
             
         except Exception as e:
-            _LOGGER.error(f"Error turning on switch {self.device_id}: {e}")
+            _LOGGER.error("Error turning on switch %s: %s", self.device_id, e)
             
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the switch off."""
@@ -217,7 +217,7 @@ class GemnsSwitch(SwitchEntity):
             self.async_write_ha_state()
             
         except Exception as e:
-            _LOGGER.error(f"Error turning off switch {self.device_id}: {e}")
+            _LOGGER.error("Error turning off switch %s: %s", self.device_id, e)
             
     async def _turn_on_switch(self):
         """Turn on a regular switch."""

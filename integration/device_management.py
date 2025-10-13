@@ -1,4 +1,4 @@
-"""Device management for WePower IoT integration."""
+"""Device management for Gemns™ IoT integration."""
 
 import asyncio
 import json
@@ -28,7 +28,6 @@ from .const import (
     MQTT_TOPIC_STATUS,
     MQTT_TOPIC_DEVICE,
     MQTT_TOPIC_CONTROL,
-    MQTT_TOPIC_DONGLE,
     SIGNAL_DEVICE_UPDATED,
 )
 
@@ -38,15 +37,14 @@ _LOGGER = logging.getLogger(__name__)
 SIGNAL_DEVICE_ADDED = f"{DOMAIN}_device_added"
 SIGNAL_DEVICE_REMOVED = f"{DOMAIN}_device_removed"
 
-class WePowerIoTDeviceManager:
-    """Manages WePower IoT devices."""
+class GemnsDeviceManager:
+    """Manages Gemns™ IoT devices."""
 
     def __init__(self, hass: HomeAssistant, config: Dict[str, Any]):
         """Initialize the device manager."""
         self.hass = hass
         self.config = config
         self.devices: Dict[str, Dict[str, Any]] = {}
-        self.dongles: Dict[str, Dict[str, Any]] = {}
         self.entity_registry = er.async_get(hass)
         self._subscribers = {}
         self._mqtt_client = None
@@ -63,38 +61,11 @@ class WePowerIoTDeviceManager:
         # Start device discovery
         asyncio.create_task(self._device_discovery_loop())
         
-        # Add some test devices for demonstration
-        await self._add_test_devices()
-        
     async def stop(self):
         """Stop the device manager."""
         # Cleanup tasks
         pass
         
-    async def _add_test_devices(self):
-        """Add some test devices for demonstration."""
-        test_devices = [
-            {
-                "device_id": "test_zigbee_light_switch",
-                "device_type": "zigbee",
-                "category": "light",
-                "name": "Test Zigbee Light Switch",
-                "status": "connected"
-            },
-            {
-                "device_id": "test_zigbee_sensor",
-                "device_type": "zigbee",
-                "category": "sensor",
-                "name": "Test Zigbee Temperature Sensor",
-                "status": "connected"
-            }
-        ]
-        
-        for device_data in test_devices:
-            await self.add_device(device_data)
-            # Mark as created entity
-            self._created_entities.add(device_data["device_id"])
-            
     async def add_device(self, device_data: Dict[str, Any]) -> bool:
         """Add a new device manually."""
         try:
@@ -147,10 +118,6 @@ class WePowerIoTDeviceManager:
         """Get devices by status."""
         return [d for d in self.devices.values() if d.get("status") == status]
         
-    def get_dongles(self) -> List[Dict[str, Any]]:
-        """Get all dongles."""
-        return list(self.dongles.values())
-        
     async def _subscribe_to_mqtt(self):
         """Subscribe to relevant MQTT topics."""
         try:
@@ -159,16 +126,11 @@ class WePowerIoTDeviceManager:
                 _LOGGER.warning("MQTT client not available, skipping MQTT subscription")
                 return
                 
-            # Subscribe to MQTT topics for device updates
+            # Subscribe to MQTT topics for device updates (removed dongle topics)
             await async_subscribe(
                 self.hass,
                 MQTT_TOPIC_STATUS,
                 self._handle_status_message
-            )
-            await async_subscribe(
-                self.hass,
-                f"{MQTT_TOPIC_DONGLE}/+/+",
-                self._handle_dongle_message
             )
             await async_subscribe(
                 self.hass,
@@ -191,37 +153,6 @@ class WePowerIoTDeviceManager:
             _LOGGER.info(f"Status message received: {data}")
         except Exception as e:
             _LOGGER.error(f"Error handling status message: {e}")
-            
-    def _handle_dongle_message(self, msg):
-        """Handle dongle status messages."""
-        try:
-            data = json.loads(msg.payload)
-            _LOGGER.info(f"Dongle message received: {data}")
-            
-            # Update dongle status
-            port = data.get("port", "unknown")
-            device_type = data.get("device_type", "unknown")
-            status = data.get("status", "unknown")
-            
-            # Create or update dongle
-            dongle_id = f"{device_type}_{port}"
-            self.dongles[dongle_id] = {
-                "port": port,
-                "device_type": device_type,
-                "status": status,
-                "device_count": data.get("device_count", 0),
-                "timestamp": data.get("timestamp")
-            }
-            
-            # Schedule the dispatcher call in the main event loop
-            self.hass.loop.call_soon_threadsafe(
-                lambda: self.hass.async_create_task(
-                    self._async_notify_dongle_update(self.dongles[dongle_id])
-                )
-            )
-            
-        except Exception as e:
-            _LOGGER.error(f"Error handling dongle message: {e}")
             
     def _handle_device_message(self, msg):
         """Handle device messages."""
@@ -279,10 +210,6 @@ class WePowerIoTDeviceManager:
         except Exception as e:
             _LOGGER.error(f"Failed to publish MQTT message: {e}")
             
-    async def _async_notify_dongle_update(self, dongle_data):
-        """Async helper to notify dongle updates."""
-        async_dispatcher_send(self.hass, SIGNAL_DEVICE_UPDATED, dongle_data)
-        
     async def _async_notify_device_update(self, device_data):
         """Async helper to notify device updates."""
         async_dispatcher_send(self.hass, SIGNAL_DEVICE_UPDATED, device_data)

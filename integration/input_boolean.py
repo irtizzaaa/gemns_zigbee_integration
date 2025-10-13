@@ -1,4 +1,4 @@
-"""Input boolean platform for WePower IoT integration."""
+"""Input boolean platform for Gemns™ IoT integration."""
 
 import logging
 from typing import Any, Dict, Optional
@@ -19,7 +19,7 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up WePower IoT input booleans from a config entry."""
+    """Set up Gemns™ IoT input booleans from a config entry."""
     
     # Get device manager
     device_manager = hass.data[DOMAIN][config_entry.entry_id].get("device_manager")
@@ -30,24 +30,24 @@ async def async_setup_entry(
     entities = []
     
     # BLE Toggle
-    ble_toggle = WePowerIoTBLEToggle(device_manager)
+    ble_toggle = GemnsBLEToggle(device_manager)
     entities.append(ble_toggle)
     
     # Zigbee Toggle
-    zigbee_toggle = WePowerIoTZigbeeToggle(device_manager)
+    zigbee_toggle = GemnsZigbeeToggle(device_manager)
     entities.append(zigbee_toggle)
     
     if entities:
         async_add_entities(entities)
 
 
-class WePowerIoTBLEToggle(InputBoolean):
+class GemnsBLEToggle(InputBoolean):
     """Representation of BLE toggle."""
 
     def __init__(self, device_manager):
         """Initialize the BLE toggle."""
         self.device_manager = device_manager
-        self._attr_name = "WePower IoT BLE Enabled"
+        self._attr_name = "Gemns™ IoT BLE Enabled"
         self._attr_unique_id = f"{DOMAIN}_ble_enabled"
         self._attr_icon = "mdi:bluetooth"
         self._attr_should_poll = False
@@ -55,10 +55,10 @@ class WePowerIoTBLEToggle(InputBoolean):
         # Set device info
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, "ble_toggle")},
-            name="WePower IoT BLE Toggle",
-            manufacturer="WePower",
+            name="Gemns™ IoT BLE Toggle",
+            manufacturer="Gemns™ IoT",
             model="BLE Toggle",
-            sw_version="1.0.0",
+            sw_version=device.get("firmware_version", "1.0.0"),
         )
         
         # Set initial state
@@ -87,13 +87,13 @@ class WePowerIoTBLEToggle(InputBoolean):
         self.hass.bus.async_fire(f"{DOMAIN}_ble_toggled", {"enabled": False})
 
 
-class WePowerIoTZigbeeToggle(InputBoolean):
+class GemnsZigbeeToggle(InputBoolean):
     """Representation of Zigbee toggle."""
 
     def __init__(self, device_manager):
         """Initialize the Zigbee toggle."""
         self.device_manager = device_manager
-        self._attr_name = "WePower IoT Zigbee Enabled"
+        self._attr_name = "Gemns™ IoT Zigbee Enabled"
         self._attr_unique_id = f"{DOMAIN}_zigbee_enabled"
         self._attr_icon = "mdi:zigbee"
         self._attr_should_poll = False
@@ -101,10 +101,10 @@ class WePowerIoTZigbeeToggle(InputBoolean):
         # Set device info
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, "zigbee_toggle")},
-            name="WePower IoT Zigbee Toggle",
-            manufacturer="WePower",
+            name="Gemns™ IoT Zigbee Toggle",
+            manufacturer="Gemns™ IoT",
             model="Zigbee Toggle",
-            sw_version="1.0.0",
+            sw_version=device.get("firmware_version", "1.0.0"),
         )
         
         # Set initial state

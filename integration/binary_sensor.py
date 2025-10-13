@@ -1,4 +1,4 @@
-"""Binary sensor platform for WePower IoT integration."""
+"""Binary sensor platform for Gemns™ IoT integration."""
 
 import logging
 from typing import Any, Dict, Optional
@@ -33,7 +33,7 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up WePower IoT binary sensors from a config entry."""
+    """Set up Gemns™ IoT binary sensors from a config entry."""
     
     # Get device manager
     device_manager = hass.data[DOMAIN][config_entry.entry_id].get("device_manager")
@@ -44,62 +44,63 @@ async def async_setup_entry(
     entities = []
     
     # BLE Connection Status
-    ble_sensor = WePowerIoTBLESensor(device_manager)
+    ble_sensor = GemnsBLESensor(device_manager)
     entities.append(ble_sensor)
     
     # Zigbee Connection Status
-    zigbee_sensor = WePowerIoTZigbeeSensor(device_manager)
+    zigbee_sensor = GemnsZigbeeSensor(device_manager)
     entities.append(zigbee_sensor)
     
     if entities:
         async_add_entities(entities)
 
 
-class WePowerIoTBLESensor(BinarySensorEntity):
+class GemnsBLESensor(BinarySensorEntity):
     """Representation of BLE connection status."""
 
     def __init__(self, device_manager):
         """Initialize the BLE sensor."""
         self.device_manager = device_manager
-        self._attr_name = "WePower IoT BLE Connected"
+        self._attr_name = "Gemns™ IoT BLE Connected"
         self._attr_unique_id = f"{DOMAIN}_ble_connected"
         self._attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
         self._attr_icon = "mdi:bluetooth"
         self._attr_should_poll = False
         
-        # Set device info
+        # Set device info with custom icon
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, "ble_dongle")},
-            name="WePower IoT BLE Dongle",
-            manufacturer="WePower",
+            name="Gemns™ IoT BLE Dongle",
+            manufacturer="Gemns™ IoT",
             model="BLE Dongle",
-            sw_version="1.0.0",
+            sw_version=device.get("firmware_version", "1.0.0"),
+            configuration_url=f"https://github.com/manaam216/gemns_integration/blob/main/README.md",
+            image="/local/gemns/ble_dongle.png",
         )
+        
+        # Set custom icon for BLE dongle
+        self._attr_icon = "mdi:bluetooth"
         
         # Set initial state
         self._update_state()
         
     def _update_state(self):
         """Update sensor state from device manager."""
-        # Check if any BLE dongles are connected
-        ble_dongles = [d for d in self.device_manager.get_dongles() 
-                      if d.get("device_type") == "ble" and 
-                      d.get("status") == DEVICE_STATUS_CONNECTED]
+        # Since we removed dongles, check if any BLE devices are configured
+        ble_devices = [d for d in self.device_manager.get_all_devices() 
+                      if d.get("device_type") == "ble"]
         
-        self._attr_is_on = len(ble_dongles) > 0
+        self._attr_is_on = len(ble_devices) > 0
         
     @property
     def extra_state_attributes(self) -> Dict[str, Any]:
         """Return entity specific state attributes."""
-        ble_dongles = [d for d in self.device_manager.get_dongles() 
+        ble_devices = [d for d in self.device_manager.get_all_devices() 
                       if d.get("device_type") == "ble"]
         
         return {
-            "dongle_count": len(ble_dongles),
-            "connected_dongles": [d.get("port") for d in ble_dongles 
-                                if d.get("status") == DEVICE_STATUS_CONNECTED],
-            "offline_dongles": [d.get("port") for d in ble_dongles 
-                               if d.get("status") == DEVICE_STATUS_OFFLINE],
+            "device_count": len(ble_devices),
+            "configured_devices": [d.get("device_id") for d in ble_devices],
             "last_update": datetime.now(timezone.utc).isoformat(),
         }
         
@@ -129,51 +130,52 @@ class WePowerIoTBLESensor(BinarySensorEntity):
         self._update_state()
 
 
-class WePowerIoTZigbeeSensor(BinarySensorEntity):
+class GemnsZigbeeSensor(BinarySensorEntity):
     """Representation of Zigbee connection status."""
 
     def __init__(self, device_manager):
         """Initialize the Zigbee sensor."""
         self.device_manager = device_manager
-        self._attr_name = "WePower IoT Zigbee Connected"
+        self._attr_name = "Gemns™ IoT Zigbee Connected"
         self._attr_unique_id = f"{DOMAIN}_zigbee_connected"
         self._attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
         self._attr_icon = "mdi:zigbee"
         self._attr_should_poll = False
         
-        # Set device info
+        # Set device info with custom icon
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, "zigbee_dongle")},
-            name="WePower IoT Zigbee Dongle",
-            manufacturer="WePower",
+            name="Gemns™ IoT Zigbee Dongle",
+            manufacturer="Gemns™ IoT",
             model="Zigbee Dongle",
-            sw_version="1.0.0",
+            sw_version=device.get("firmware_version", "1.0.0"),
+            configuration_url=f"https://github.com/manaam216/gemns_integration/blob/main/README.md",
+            image="/local/gemns/zigbee_dongle.png",
         )
+        
+        # Set custom icon for Zigbee dongle
+        self._attr_icon = "mdi:zigbee"
         
         # Set initial state
         self._update_state()
         
     def _update_state(self):
         """Update sensor state from device manager."""
-        # Check if any Zigbee dongles are connected
-        zigbee_dongles = [d for d in self.device_manager.get_dongles() 
-                         if d.get("device_type") == "zigbee" and 
-                         d.get("status") == DEVICE_STATUS_CONNECTED]
+        # Check if any Zigbee devices are configured
+        zigbee_devices = [d for d in self.device_manager.get_all_devices() 
+                         if d.get("device_type") == "zigbee"]
         
-        self._attr_is_on = len(zigbee_dongles) > 0
+        self._attr_is_on = len(zigbee_devices) > 0
         
     @property
     def extra_state_attributes(self) -> Dict[str, Any]:
         """Return entity specific state attributes."""
-        zigbee_dongles = [d for d in self.device_manager.get_dongles() 
+        zigbee_devices = [d for d in self.device_manager.get_all_devices() 
                          if d.get("device_type") == "zigbee"]
         
         return {
-            "dongle_count": len(zigbee_dongles),
-            "connected_dongles": [d.get("port") for d in zigbee_dongles 
-                                if d.get("status") == DEVICE_STATUS_CONNECTED],
-            "offline_dongles": [d.get("port") for d in zigbee_dongles 
-                               if d.get("status") == DEVICE_STATUS_OFFLINE],
+            "device_count": len(zigbee_devices),
+            "configured_devices": [d.get("device_id") for d in zigbee_devices],
             "last_update": datetime.now(timezone.utc).isoformat(),
         }
         

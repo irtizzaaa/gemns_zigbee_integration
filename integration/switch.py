@@ -42,8 +42,6 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Gemns™ IoT switches from a config entry."""
-    global _add_entities_callback
-    
     # Store the callback for dynamic entity creation
     _add_entities_callback = async_add_entities
     

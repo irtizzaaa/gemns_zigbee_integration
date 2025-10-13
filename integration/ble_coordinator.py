@@ -136,7 +136,7 @@ class GemnsBluetoothProcessorCoordinator(
             _LOGGER.info("BLE DATA PARSED: %s | Data: %s", self.address, parsed_data)
             self.async_update_listeners()
             
-        except Exception as e:
+        except (ValueError, KeyError, AttributeError, TypeError) as e:
             self.last_update_success = False
             _LOGGER.error("BLE PARSE ERROR: %s | Error: %s", self.address, e)
 
@@ -467,4 +467,3 @@ class GemnsBluetoothProcessorCoordinator(
         # Clean up any resources if needed
         self.data = {}
         self.last_update_success = False
-

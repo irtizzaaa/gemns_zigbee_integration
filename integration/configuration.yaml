@@ -21,7 +21,6 @@ gemns:
   enable_device_pairing: true
   enable_device_management: true
   max_paired_devices: 50
-
   # Serial Port Configuration
   include_patterns: "/dev/ttyUSB*,/dev/ttyACM*"
   exclude_patterns: "/dev/ttyS*,/dev/input*,/dev/hidraw*"

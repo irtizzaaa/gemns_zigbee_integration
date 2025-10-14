@@ -153,3 +153,8 @@ class PsnMediaPlayerEntity(
             self.async_on_remove(
                 self.trophy_titles.async_add_listener(self._handle_coordinator_update)
             )
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self.async_write_ha_state()

@@ -260,6 +260,6 @@ async def test_trophy_title_coordinator_play_new_game(
 
     assert (state := hass.states.get("media_player.playstation_vita"))
     assert (
-        state.attributes["entity_picture"]
+        state.attributes.get("entity_picture")
         == "https://image.api.playstation.com/trophy/np/NPWR03134_00_0008206095F67FD3BB385E9E00A7C9CFE6F5A4AB96/5F87A6997DD23D1C4D4CC0D1F958ED79CB905331.PNG"
     )

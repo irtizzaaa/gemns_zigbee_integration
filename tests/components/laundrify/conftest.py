@@ -28,6 +28,7 @@ def laundrify_sensor_fixture() -> LaundrifyDevice:
     mock_device.model = machine_data["model"]
     mock_device.name = machine_data["name"]
     mock_device.firmwareVersion = machine_data["firmwareVersion"]
+    mock_device.totalEnergy = machine_data["totalEnergy"]
     return mock_device
 
 
@@ -67,7 +68,7 @@ def laundrify_api_fixture(hass_client: ClientSessionGenerator):
         patch(
             "laundrify_aio.LaundrifyAPI.get_machines",
             return_value=[
-                LaundrifyDevice(machine, LaundrifyAPI)
+                LaundrifyDevice(machine, LaundrifyAPI(VALID_ACCESS_TOKEN, hass_client))
                 for machine in json.loads(load_fixture("laundrify/machines.json"))
             ],
         ),

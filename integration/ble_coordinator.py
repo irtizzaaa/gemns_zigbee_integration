@@ -163,7 +163,7 @@ class GemnsBluetoothProcessorCoordinator(
             for manufacturer_id, manufacturer_data in service_info.manufacturer_data.items():
                 _LOGGER.info("MANUFACTURER: %s | ID: 0x%04X | Data: %s",
                             self.address, manufacturer_id, manufacturer_data.hex())
-                if manufacturer_id == BLE_COMPANY_ID:  # Gemns™ IoT manufacturer ID (0x5750)
+                if manufacturer_id == BLE_COMPANY_ID:  # Gemns™ IoT manufacturer ID (0x0F9C)
                     _LOGGER.info("GEMNS™ IOT DEVICE DETECTED: %s | Parsing data...", self.address)
                     parsed_data = self._parse_gems_manufacturer_data(manufacturer_data)
                     if parsed_data:
@@ -240,8 +240,8 @@ class GemnsBluetoothProcessorCoordinator(
         _LOGGER.info("PACKET DEBUG: Length=%d, Data=%s", len(data), data.hex())
 
         try:
-            # Company ID is already filtered by HA BLE driver (0x5750)
-            company_id = 0x5750  # Gemns™ IoT company ID (filtered by HA)
+            # Company ID is already filtered by HA BLE driver (0x0F9C)
+            company_id = 0x0F9C  # Gemns™ IoT company ID (filtered by HA)
             flags = data[0]  # 1 byte
             encrypted_data = data[1:17]  # 16 bytes (positions 1-16)
             crc = data[17]  # 1 byte (position 17, last byte)

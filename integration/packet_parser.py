@@ -10,7 +10,7 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 _LOGGER = logging.getLogger(__name__)
 
 # Constants from the new packet format
-COMPANY_ID = 0x5750  # Gemns™ IoT company ID
+COMPANY_ID = 0x0F9C  # Gemns™ IoT company ID
 PACKET_LENGTH = 18  # Total packet length (HA BLE driver filters company ID)
 ENCRYPTED_DATA_SIZE = 16
 
@@ -82,7 +82,7 @@ class GemnsPacket:
         # We have: Flags (1) + Encrypted Data (16) + CRC (1) = 18 bytes
         # Need to add Company ID back for CRC calculation
 
-        company_id_bytes = struct.pack('<H', COMPANY_ID)  # 0x5750 as little-endian bytes
+        company_id_bytes = struct.pack('<H', COMPANY_ID)  # 0x0F9C as little-endian bytes
         full_packet = company_id_bytes + self.raw_data  # Add company ID back
 
         # Calculate CRC over all data except the last byte (CRC field)

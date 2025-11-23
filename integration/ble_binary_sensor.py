@@ -197,37 +197,46 @@ class GemnsBLEBinarySensor(BinarySensorEntity):
         """Set binary sensor properties based on device type (matching device_type_t enum)."""
         device_type = self._device_type.lower()
 
-        # Set properties based on device type (matching device_type_t enum)
-        if device_type == "leak_sensor":
-            # DEVICE_TYPE_LEAK_SENSOR = 4 - moisture device class
+        if device_type == "push_button":
+            self._attr_device_class = BinarySensorDeviceClass.PROBLEM
+            self._attr_name = f"Gemns™ IoT Push Button {self._get_professional_device_id()}"
+            self._attr_icon = "mdi:gesture-tap-button"
+
+        elif device_type == "light_switch":
+            self._attr_device_class = BinarySensorDeviceClass.OPENING
+            self._attr_name = f"Gemns™ IoT Light Switch {self._get_professional_device_id()}"
+            self._attr_icon = "mdi:light-switch"
+
+        elif device_type == "door_sensor":
+            self._attr_device_class = BinarySensorDeviceClass.DOOR
+            self._attr_name = f"Gemns™ IoT Door Sensor {self._get_professional_device_id()}"
+            self._attr_icon = "mdi:door"
+
+        elif device_type == "leak_sensor":
             self._attr_device_class = BinarySensorDeviceClass.MOISTURE
             self._attr_name = f"Gemns™ IoT Leak Sensor {self._get_professional_device_id()}"
             self._attr_icon = "mdi:water"
 
         elif device_type == "vibration_sensor":
-            # DEVICE_TYPE_VIBRATION_MONITOR = 2 - vibration device class
             self._attr_device_class = BinarySensorDeviceClass.VIBRATION
             self._attr_name = f"Gemns™ IoT Vibration Monitor {self._get_professional_device_id()}"
             self._attr_icon = "mdi:vibrate"
 
         elif device_type == "two_way_switch":
-            # DEVICE_TYPE_TWO_WAY_SWITCH = 3 - opening device class (on/off)
             self._attr_device_class = BinarySensorDeviceClass.OPENING
             self._attr_name = f"Gemns™ IoT Two-Way Switch {self._get_professional_device_id()}"
             self._attr_icon = "mdi:toggle-switch"
 
         elif device_type in ["button", "legacy"]:
-            # DEVICE_TYPE_BUTTON = 1, DEVICE_TYPE_LEGACY = 0 - problem device class
             self._attr_device_class = BinarySensorDeviceClass.PROBLEM
             if device_type == "button":
                 self._attr_name = f"Gemns™ IoT Button {self._get_professional_device_id()}"
                 self._attr_icon = "mdi:gesture-tap-button"
-            else:  # legacy
+            else:
                 self._attr_name = f"Gemns™ IoT Legacy Device {self._get_professional_device_id()}"
                 self._attr_icon = "mdi:chip"
 
         else:
-            # Unknown device type - generic binary sensor
             self._attr_device_class = BinarySensorDeviceClass.PROBLEM
             self._attr_name = f"Gemns™ IoT Alert {self._get_professional_device_id()}"
             self._attr_icon = "mdi:alert"
@@ -236,13 +245,15 @@ class GemnsBLEBinarySensor(BinarySensorEntity):
         """Update device info with proper name and model."""
         device_type = self._device_type.lower()
 
-        # Set model based on device type (matching device_type_t enum)
         model_map = {
-            "legacy": "Batteryless Legacy Device",           # DEVICE_TYPE_LEGACY = 0
-            "button": "Batteryless Button",                  # DEVICE_TYPE_BUTTON = 1
-            "vibration_sensor": "Batteryless Vibration Monitor", # DEVICE_TYPE_VIBRATION_MONITOR = 2
-            "two_way_switch": "Batteryless Two-Way Switch",  # DEVICE_TYPE_TWO_WAY_SWITCH = 3
-            "leak_sensor": "Batteryless Leak Sensor",        # DEVICE_TYPE_LEAK_SENSOR = 4
+            "push_button": "Batteryless Push Button",
+            "light_switch": "Batteryless Light Switch",
+            "door_sensor": "Batteryless Door Sensor",
+            "two_way_switch": "Batteryless Two-Way Switch",
+            "leak_sensor": "Batteryless Leak Sensor",
+            "vibration_sensor": "Batteryless Vibration Monitor",
+            "legacy": "Batteryless Legacy Device",
+            "button": "Batteryless Button",
             "unknown_device": "Batteryless IoT Device"
         }
 
@@ -299,6 +310,9 @@ class GemnsBLEBinarySensor(BinarySensorEntity):
         """Get device image URL based on device type."""
         # Map device types to their corresponding image paths
         image_map = {
+            "push_button": "/local/custom_components/gemns/static/icon.png",
+            "light_switch": "/local/custom_components/gemns/static/icon.png",
+            "door_sensor": "/local/custom_components/gemns/static/icon.png",
             "leak_sensor": "/local/custom_components/gemns/static/icon.png",
             "vibration_sensor": "/local/custom_components/gemns/static/icon.png",
             "two_way_switch": "/local/custom_components/gemns/static/icon.png",
@@ -312,47 +326,43 @@ class GemnsBLEBinarySensor(BinarySensorEntity):
         """Extract binary sensor value from coordinator data."""
         _LOGGER.info("EXTRACTING BINARY SENSOR VALUE: %s | Data: %s", self.address, data)
 
-        # Try to get sensor value from sensor_data
         sensor_data = data.get("sensor_data", {})
         _LOGGER.info("SENSOR DATA: %s | Sensor data: %s", self.address, sensor_data)
 
-        if "leak_detected" in sensor_data:
-            # DEVICE_TYPE_LEAK_SENSOR = 4 - EVENT_TYPE_LEAK_DETECTED = 4
+        if "button_pressed" in sensor_data:
+            self._attr_is_on = sensor_data["button_pressed"]
+            _LOGGER.info("PUSH BUTTON BINARY SENSOR: %s | Button pressed: %s | Value: %s",
+                        self.address, sensor_data["button_pressed"], self._attr_is_on)
+
+        elif "switch_on" in sensor_data:
+            self._attr_is_on = sensor_data["switch_on"]
+            _LOGGER.info("SWITCH BINARY SENSOR: %s | Switch on: %s | Value: %s",
+                        self.address, sensor_data["switch_on"], self._attr_is_on)
+
+        elif "door_open" in sensor_data:
+            self._attr_is_on = sensor_data["door_open"]
+            _LOGGER.info("DOOR SENSOR BINARY SENSOR: %s | Door open: %s | Value: %s",
+                        self.address, sensor_data["door_open"], self._attr_is_on)
+
+        elif "leak_detected" in sensor_data:
             self._attr_is_on = sensor_data["leak_detected"]
             _LOGGER.info("LEAK BINARY SENSOR: %s | Leak detected: %s | Value: %s",
                         self.address, sensor_data["leak_detected"], self._attr_is_on)
 
         elif "vibration_detected" in sensor_data:
-            # DEVICE_TYPE_VIBRATION_MONITOR = 2 - EVENT_TYPE_VIBRATION = 1
             self._attr_is_on = sensor_data["vibration_detected"]
             _LOGGER.info("VIBRATION BINARY SENSOR: %s | Vibration detected: %s | Value: %s",
                         self.address, sensor_data["vibration_detected"], self._attr_is_on)
 
-        elif "switch_on" in sensor_data:
-            # DEVICE_TYPE_TWO_WAY_SWITCH = 3 - EVENT_TYPE_BUTTON_ON = 3
-            self._attr_is_on = sensor_data["switch_on"]
-            _LOGGER.info("SWITCH BINARY SENSOR: %s | Switch on: %s | Value: %s",
-                        self.address, sensor_data["switch_on"], self._attr_is_on)
-
-        elif "button_pressed" in sensor_data:
-            # DEVICE_TYPE_BUTTON = 1, DEVICE_TYPE_LEGACY = 0 - EVENT_TYPE_BUTTON_PRESS = 0
-            self._attr_is_on = sensor_data["button_pressed"]
-            _LOGGER.info("BUTTON BINARY SENSOR: %s | Button pressed: %s | Value: %s",
-                        self.address, sensor_data["button_pressed"], self._attr_is_on)
-
         elif "sensor_event" in sensor_data:
-            # For other sensors, use sensor_event as binary state
             self._attr_is_on = sensor_data["sensor_event"] > 0
             _LOGGER.info("SENSOR EVENT BINARY: %s | Event: %s | Value: %s",
                         self.address, sensor_data["sensor_event"], self._attr_is_on)
 
-        # No specific binary value found, check if this is a leak sensor
         elif "leak" in self._device_type.lower():
-            # For leak sensors without data, assume no leak (False)
             self._attr_is_on = False
             _LOGGER.info("LEAK SENSOR DEFAULT: %s | No leak data, assuming no leak (False)", self.address)
         else:
-            # For other sensors, default to False
             self._attr_is_on = False
             _LOGGER.warning("NO BINARY VALUE: %s | No leak detection or sensor event found", self.address)
 

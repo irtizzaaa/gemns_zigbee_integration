@@ -1,7 +1,9 @@
 """The Gemns™ IoT integration."""
 
 import logging
+import pathlib
 
+from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
@@ -28,6 +30,22 @@ BLE_PLATFORMS: list[Platform] = [
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Gemns™ IoT from a config entry."""
     hass.data.setdefault(DOMAIN, {})
+    
+    # Register static path for integration assets
+    if "static_registered" not in hass.data[DOMAIN]:
+        integration_path = pathlib.Path(__file__).parent
+        static_path = integration_path / "static"
+        if static_path.exists():
+            await hass.http.async_register_static_paths(
+                [
+                    StaticPathConfig(
+                        f"/local/custom_components/{DOMAIN}/static",
+                        str(static_path),
+                        cache_headers=True,
+                    )
+                ]
+            )
+            hass.data[DOMAIN]["static_registered"] = True
 
     # Check if this is a BLE device entry
     if entry.data.get("address"):

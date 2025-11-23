@@ -1,7 +1,7 @@
 {
   "name": "Gemns IoT",
   "content_in_root": false,
-  "filename": "gemns_iot",
+  "filename": null,
   "country": [
     "US",
     "GB",
@@ -112,6 +112,6 @@
     "MZ"
   ],
   "render_readme": true,
-  "domains": ["gemns_iot"],
+  "domains": ["gemns"],
   "iot_class": "Local Push"
 }
